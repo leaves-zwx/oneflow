@@ -984,6 +984,8 @@ void TaskGraph::BuildTaskPath(TaskNode* src_node, TaskNode* dst_node, const Logi
   ConnectWithLbi(proxy_node, dst_node, lbi);
 }
 
+DEFINE_ENV_BOOL(STRAIGHTEN_TASK_NODES_BY_ALAP, false);
+
 void TaskGraph::DecideExecutionOrder() {
   // For one machine with no transfer available, the straighten algorithm for overlaps consume a lot
   // of memory
@@ -994,8 +996,12 @@ void TaskGraph::DecideExecutionOrder() {
           && GlobalProcessCtx::WorldSize() == 1)) {
     InitOrderedTaskNodes();
   } else {
-    StraightenNodes(this, &ordered_task_nodes_,
-                    Singleton<ResourceDesc, ForSession>::Get()->nccl_use_compute_stream());
+    if (EnvBool<STRAIGHTEN_TASK_NODES_BY_ALAP>) {
+      StraightenNodesALAP(this, &ordered_task_nodes_);
+    } else {
+      StraightenNodes(this, &ordered_task_nodes_,
+                      Singleton<ResourceDesc, ForSession>::Get()->nccl_use_compute_stream());
+    }
   }
 }
 

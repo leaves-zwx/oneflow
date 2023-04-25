@@ -274,7 +274,7 @@ std::string OpCallInstructionPolicy::DebugName(const vm::Instruction& instructio
 }
 
 Maybe<void> Recompute(OpCallInstructionPolicy* op_call_instruction_policy, vm::Stream* vm_stream) {
-  VLOG(1) << "recompute " << op_call_instruction_policy->opkernel().op_type_name() << "manually";
+  VLOG(1) << "recompute " << op_call_instruction_policy->opkernel().op_type_name() << " manually";
   return OpCallInstructionUtil::Compute(op_call_instruction_policy, vm_stream, true, true);
 }
 
