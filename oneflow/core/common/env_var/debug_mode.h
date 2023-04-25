@@ -47,6 +47,8 @@ inline bool IsPythonStackGetterEnabled() {
   return ParseBooleanFromEnv("ONEFLOW_PYTHON_STACK_GETTER", IsInDebugMode());
 }
 
+DEFINE_ENV_BOOL(STRAIGHTEN_TASK_NODES_BY_ALAP, false);
+
 }  // namespace oneflow
 
 #endif  // ONEFLOW_CORE_COMMON_ENV_VAR_DEBUG_MODE_H_

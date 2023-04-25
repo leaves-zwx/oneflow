@@ -547,5 +547,63 @@ void StraightenOpGraph(const OpGraph& op_graph, std::vector<const OpNode*>* orde
   StraightenSubGraph(sub_graph, ordered_op_nodes);
 }
 
+void StraightenOpGraphALAP(const OpGraph& op_graph, std::vector<const OpNode*>* ordered_op_nodes) {
+  // 1. Find all sink nodes
+  std::queue<const OpNode*> queued_nodes;
+  op_graph.ForEachNode([&](OpNode* node) -> void {
+    if (node->out_edges().empty()) { queued_nodes.push(node); }
+  });
+
+  // 2. Decide all nodes's depth
+  int depth_count = 0;
+  HashMap<const OpNode*, int> node2depth;
+  // nullptr indicate separator, nodes following it belong to the next depth
+  queued_nodes.push(nullptr);
+  while (!queued_nodes.empty()) {
+    const OpNode* cur_node = queued_nodes.front();
+    queued_nodes.pop();
+    if (cur_node == nullptr) {
+      if (queued_nodes.empty()) { break; }
+      queued_nodes.push(nullptr);
+      depth_count++;
+      continue;
+    }
+    bool depth_updated = false;
+    auto node_depth_it = node2depth.find(cur_node);
+    if (node_depth_it == node2depth.end()) {
+      node_depth_it = node2depth.emplace(cur_node, depth_count).first;
+      depth_updated = true;
+    }
+    if (depth_count > node_depth_it->second) {
+      node_depth_it->second = depth_count;
+      depth_updated = true;
+    }
+    if (depth_updated) {
+      cur_node->ForEachNodeOnInEdge([&](OpNode* parent) -> void { queued_nodes.push(parent); });
+    }
+  }
+
+  // 3. Traverse by depth
+  int max_depth = 0;
+  HashMap<int, std::vector<OpNode*>> depth2nodes;
+  // 3.1 collect depth nodes
+  op_graph.TopoForEachNode([&](OpNode* node) -> void {
+    auto node_depth_it = node2depth.find(node);
+    CHECK(node_depth_it != node2depth.end());
+    int depth = node_depth_it->second;
+    auto& depth_nodes = depth2nodes[depth];
+    depth_nodes.push_back(node);
+    max_depth = std::max(max_depth, depth);
+  });
+  // 3.2 traverse from max depth to min depth
+  ordered_op_nodes->clear();
+  for (int d = max_depth; d >= 0; --d) {
+    auto depth_nodes_it = depth2nodes.find(d);
+    CHECK(depth_nodes_it != depth2nodes.end());
+    const auto& depth_nodes = depth_nodes_it->second;
+    for (OpNode* node : depth_nodes) { ordered_op_nodes->push_back(node); }
+  }
+}
+
 }  // namespace auto_parallel
 }  // namespace oneflow

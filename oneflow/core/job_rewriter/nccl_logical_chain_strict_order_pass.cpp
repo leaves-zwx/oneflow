@@ -172,7 +172,11 @@ Maybe<void> NcclLogicalChainStrictOrderPass::Apply(const OpGraph& op_graph,
     op_graph.TopoForEachNodeWithCtrlEdge(
         [&](const OpNode* node) { ordered_op_nodes.emplace_back(node); });
   } else {
-    auto_parallel::StraightenOpGraph(op_graph, &ordered_op_nodes);
+    if (EnvBool<STRAIGHTEN_TASK_NODES_BY_ALAP>()) {
+      auto_parallel::StraightenOpGraphALAP(op_graph, &ordered_op_nodes);
+    } else {
+      auto_parallel::StraightenOpGraph(op_graph, &ordered_op_nodes);
+    }
   }
 
   for (int32_t global_order = 0; global_order < ordered_op_nodes.size(); global_order++) {

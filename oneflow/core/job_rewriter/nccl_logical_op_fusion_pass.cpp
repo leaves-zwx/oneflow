@@ -234,7 +234,11 @@ Maybe<void> NcclLogicalOpFusionPass::Apply(const OpGraph& op_graph, JobBuilder* 
     op_graph.TopoForEachNodeWithCtrlEdge(
         [&](const OpNode* node) { ordered_op_nodes.emplace_back(node); });
   } else {
-    auto_parallel::StraightenOpGraph(op_graph, &ordered_op_nodes);
+    if (EnvBool<STRAIGHTEN_TASK_NODES_BY_ALAP>()) {
+      auto_parallel::StraightenOpGraphALAP(op_graph, &ordered_op_nodes);
+    } else {
+      auto_parallel::StraightenOpGraph(op_graph, &ordered_op_nodes);
+    }
   }
 
   for (const OpNode* node : ordered_op_nodes) {

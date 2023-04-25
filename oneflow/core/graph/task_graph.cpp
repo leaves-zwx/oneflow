@@ -42,7 +42,6 @@ namespace oneflow {
 
 // TODO(Chengcheng): default false.
 DEFINE_ENV_BOOL(ONEFLOW_ENABLE_OUTDATED_OPT_FW_CHAIN_MERGE, true);
-DEFINE_ENV_BOOL(STRAIGHTEN_TASK_NODES_BY_ALAP, false);
 
 namespace {
 

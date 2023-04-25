@@ -30,6 +30,9 @@ void StraightenSubGraph(const std::vector<const OpNode*>& sub_graph,
 // Straighten the whole op graph
 void StraightenOpGraph(const OpGraph& op_graph, std::vector<const OpNode*>* ordered_op_nodes);
 
+// Straighten the op graph by as late as possible policy
+void StraightenOpGraphALAP(const OpGraph& op_graph, std::vector<const OpNode*>* ordered_op_nodes);
+
 }  // namespace auto_parallel
 }  // namespace oneflow
 
